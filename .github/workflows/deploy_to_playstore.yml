@@ -27,6 +27,7 @@ jobs:
         uses: subosito/flutter-action@v2.12.0
         with:
           channel: stable
+
       - run: flutter doctor -v
 
       - name: Checkout code
@@ -36,9 +37,10 @@ jobs:
       - name: Create .env files
         run: sh ./.github/scripts/create_env_files.sh
         env:
-          BASE_URL: ${{ secrets.AUTH_BASE_URL }}
-          SENTRY_URL: ${{ secrets.AUTH_SENTRY_URL }}
-          INIT_TOKEN: ${{ secrets.AUTH_INIT_TOKEN }}
+          # TODO replace when not testing on my branch
+          BASE_URL: ''
+          SENTRY_URL: ''
+          INIT_TOKEN: ''
 
       - name: Get dependencies
         run: flutter pub get
@@ -60,33 +62,33 @@ jobs:
           bundler-cache: true
           working-directory: android
 
-      - name: Create Upload Keystore file
-        run: |
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/meditokey.jks
-        env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-        working-directory: android
+      # - name: Create Upload Keystore file
+      #   run: |
+      #     echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/meditokey.jks
+      #   env:
+      #     PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+      #   working-directory: android
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       # Naturally, promote_to_production only deploys.
-      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'beta' }}
-        env:
-          PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAY_STORE_CONFIG_JSON }}
-          FCI_KEYSTORE_PATH: 'meditokey.jks' # The file is created in the previous step
-          FCI_KEY_ALIAS: ${{ secrets.FCI_KEY_ALIAS }}
-          FCI_KEY_PASSWORD: ${{ secrets.FCI_KEY_PASSWORD }}
-          FCI_KEYSTORE_PASSWORD: ${{ secrets.FCI_KEYSTORE_PASSWORD }}
-        working-directory: android
+      # - run: bundle exec fastlane ${{ github.event.inputs.lane || 'beta' }}
+      #   env:
+      #     PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAY_STORE_CONFIG_JSON }}
+      #     FCI_KEYSTORE_PATH: 'meditokey.jks' # The file is created in the previous step
+      #     FCI_KEY_ALIAS: ${{ secrets.FCI_KEY_ALIAS }}
+      #     FCI_KEY_PASSWORD: ${{ secrets.FCI_KEY_PASSWORD }}
+      #     FCI_KEYSTORE_PASSWORD: ${{ secrets.FCI_KEYSTORE_PASSWORD }}
+      #   working-directory: android
 
       # The aab bundle is prefered by Google Playstore, but cannot install
       # easily on device. Also build an APK to publish as a Github Release.
       - name: Build APK
         run: flutter build apk -v
-        env:
-          FCI_KEYSTORE_PATH: 'meditokey.jks' # The file is created in the previous step
-          FCI_KEY_ALIAS: ${{ secrets.FCI_KEY_ALIAS }}
-          FCI_KEY_PASSWORD: ${{ secrets.FCI_KEY_PASSWORD }}
-          FCI_KEYSTORE_PASSWORD: ${{ secrets.FCI_KEYSTORE_PASSWORD }}
+        # env:
+        #   FCI_KEYSTORE_PATH: 'meditokey.jks' # The file is created in the previous step
+        #   FCI_KEY_ALIAS: ${{ secrets.FCI_KEY_ALIAS }}
+        #   FCI_KEY_PASSWORD: ${{ secrets.FCI_KEY_PASSWORD }}
+        #   FCI_KEYSTORE_PASSWORD: ${{ secrets.FCI_KEYSTORE_PASSWORD }}
 
       - name: Create release version
         id: release_version
