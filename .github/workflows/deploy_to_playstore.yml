@@ -62,12 +62,12 @@ jobs:
           bundler-cache: true
           working-directory: android
 
-      # - name: Create Upload Keystore file
-      #   run: |
-      #     echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/meditokey.jks
-      #   env:
-      #     PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-      #   working-directory: android
+      - name: Create Upload Keystore file
+        run: |
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/meditokey.jks
+        env:
+          PLAY_STORE_UPLOAD_KEY: ${{ secrets.FAKE_PLAY_STORE_KEY }}
+        working-directory: android
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       # Naturally, promote_to_production only deploys.
@@ -84,11 +84,11 @@ jobs:
       # easily on device. Also build an APK to publish as a Github Release.
       - name: Build APK
         run: flutter build apk -v
-        # env:
-        #   FCI_KEYSTORE_PATH: 'meditokey.jks' # The file is created in the previous step
-        #   FCI_KEY_ALIAS: ${{ secrets.FCI_KEY_ALIAS }}
-        #   FCI_KEY_PASSWORD: ${{ secrets.FCI_KEY_PASSWORD }}
-        #   FCI_KEYSTORE_PASSWORD: ${{ secrets.FCI_KEYSTORE_PASSWORD }}
+        env:
+          FCI_KEYSTORE_PATH: 'meditokey.jks'
+          FCI_KEY_ALIAS: 'alias_name'
+          FCI_KEY_PASSWORD: '123456'
+          FCI_KEYSTORE_PASSWORD: '123456'
 
       - name: Create release version
         id: release_version
