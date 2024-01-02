@@ -11,6 +11,8 @@ on:
         description: 'Version for creating GH release. It does not change the version in the app itself.'
         required: true
   push:
+    branches:
+      - timc/chore/fix-build
     # Sequence of patterns matched against refs/tags
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
@@ -75,7 +77,9 @@ jobs:
           FCI_KEY_PASSWORD: ${{ secrets.FCI_KEY_PASSWORD }}
           FCI_KEYSTORE_PASSWORD: ${{ secrets.FCI_KEYSTORE_PASSWORD }}
         working-directory: android
-      # The aab bundle cannot install easily on device. Build an APK to publish on GH
+
+      # The aab bundle is prefered by Google Playstore, but cannot install
+      # easily on device. Also build an APK to publish as a Github Release.
       - name: Build APK
         run: flutter build apk -v
         env:
@@ -83,17 +87,21 @@ jobs:
           FCI_KEY_ALIAS: ${{ secrets.FCI_KEY_ALIAS }}
           FCI_KEY_PASSWORD: ${{ secrets.FCI_KEY_PASSWORD }}
           FCI_KEYSTORE_PASSWORD: ${{ secrets.FCI_KEYSTORE_PASSWORD }}
+
       - name: Create release version
         id: release_version
         run: echo "::set-output name=version::$(echo ${{ github.event.inputs.version || github.ref }} | sed 's#refs/tags/##')"
+
       - name: Upload app APK to github action artifact
         uses: actions/upload-artifact@v2
         with:
           name: medito-${{ steps.release_version.outputs.version }}.apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
       - name: Rename the output APK
         run: mv app-release.apk medito-${{ steps.release_version.outputs.version }}.apk
         working-directory: build/app/outputs/flutter-apk
+
       - name: Create GH Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
